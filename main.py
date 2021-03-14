@@ -1,10 +1,11 @@
+
 from tkinter import *
 from tkinter.scrolledtext import  ScrolledText
 
 import tkinter.font as tf
 
 from utils import MessageScrolledText
-from websocket_client import run, DummyClient
+from websocket_client import run, DummyClient, run_client
 
 
 class APP(object):
@@ -35,17 +36,7 @@ class APP(object):
 #         ft = tf.Font(family='微软雅黑', size=10)
 #         user_agreement = Text(start_f, bg="#ffffe1", font=ft)
 #         user_agreement.place(width=640, height=280, y=10, x=20)
-#         USER_TEXT = """                                                                  《用户协议》
-#
-#  1. 本软件是“金贸管家”平台的配套工具，仅供平台用户使用。
-#
-#  2. 本软件采用了RPA （Robotic process automation）“机器人流程自动化” 技术，在严格遵守单一窗口的安全认证规范、访问和操作规则的基础上，通过技术手段模拟用户对海关单一窗口相关数据进行复制下载，帮助企业方便获取本企业海关数据。
-#
-#  3. 本软件要求您提供单一窗口IC卡并输入密码，本软件在使用时不会记录、存储密码等一切隐私信息。
-#
-#  4. 本软件只获取您授权IC卡对应企业的相关数据，以上数据仅用于本企业合法使用。
-#
-#  5. 我们承诺会严格遵守《中华人民共和国网络安全法》、数据安全管理办法等国家对数据安全的相关法律法规。我们会通过技术手段及相应的管理措施，保障企业数据的安全性、独立性以及未被非法使用。
+#         USER_TEXT = """
 #
 # """
 #         # user_agreement.insert(END, "\n")
@@ -127,6 +118,9 @@ class APP(object):
         self.message = MessageScrolledText(frame_1)
         self.message.place(width=630, height=280, x=0, y=10)
         self.client_input = Text(frame_1)
+        ft = tf.Font(family='微软雅黑', size=10)  ###有很多参数
+        self.client_input.tag_add('tag', END)  # 申明一个tag,在a位置使用
+        self.client_input.tag_config('tag', foreground='red', font=ft)  # 设置tag即插入文字的大小,颜色等
         self.client_input.place(width=630, height=100, x=0, y=290)
         send_b = Button(frame_1, text="发送", command=self.client_send_to_server)
         send_b.place(width=70, height=30, x=550, y=350)
@@ -135,7 +129,7 @@ class APP(object):
         text = self.client_input.get(1.0, "end")
         self.client_input.delete(1.0, "end")
 
-        self.message.INFO(text)
+        self.message.INFO(text, "tag")
         self.ws.send(text)
 
     def link_server(self):
@@ -224,10 +218,6 @@ class APP(object):
 
         def client_run():
             self.swith_window(self.context_f, width=700, height=600, y=15, x=10)
-            from threading import Thread
-            passwd = self.passwd.get()
-            if passwd == '' or passwd is None:
-                passwd = "88888888"
             #
             # p = Thread(target=task.run, args=(self.message, passwd, self.cname, self.ccode, self.ttkp))
             # p.start()
@@ -256,12 +246,28 @@ class APP(object):
         tool_f.place(width=93, height=834)
 
 
+def load_args(args):
+    args.remove('-w')
+    args_dict = {}
+    for i in args[1:]:
+        t = i.split("=", 1)
+        if "-h" == t[0]:
+            args_dict["host"] = t[1]
+    return args_dict
+
+
 if __name__ == '__main__':
-    root = Tk()
-    app = APP(master=root)
-    # iamgeq = PhotoImage(file="./logo2.png")
-    app.init_window()
-    root.resizable(0, 0)  # 禁止 调整窗口大小
-    root.title("websocket-client")
-    # root.iconbitmap('tool.ico')
-    root.mainloop()
+    import sys
+    args = sys.argv
+    if "-w" in args:
+        args_dict = load_args(args)
+        run_client(args_dict['host'])
+    else:
+        root = Tk()
+        app = APP(master=root)
+        # iamgeq = PhotoImage(file="./logo2.png")
+        app.init_window()
+        root.resizable(0, 0)  # 禁止 调整窗口大小
+        root.title("websocket-client")
+        # root.iconbitmap('tool.ico')
+        root.mainloop()

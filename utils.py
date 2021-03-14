@@ -31,5 +31,5 @@ class MessageScrolledText(ScrolledText):
         :param kwargs:
         :return:
         """
-        self.insert(message)
+        self.insert(message, index="end", *args, **kwargs)
         self.see(END)
